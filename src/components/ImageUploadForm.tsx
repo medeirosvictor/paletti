@@ -12,6 +12,9 @@ import { useFaceDetection } from '../hooks/useFaceDetection';
 const ImageUploadForm: FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string>('');
+    const [faceDetected, setFaceDetected] = useState<string>('');
+    const [pixelatedImage, setPixelatedImage] = useState<string>('');
+    const [hexCluster, setHexCluster] = useState<string>('');
     const { compressImage } = useImageCompression({
         maxSizeMB: 3,
         maxWidthOrHeight: 1024,
@@ -64,7 +67,7 @@ const ImageUploadForm: FC = () => {
 
         if (croppedFaceFile) {
             setFile(croppedFaceFile);
-            setPreview(URL.createObjectURL(croppedFaceFile));
+            setFaceDetected(URL.createObjectURL(croppedFaceFile));
         } else {
             console.error(detectionError);
         }
@@ -75,37 +78,43 @@ const ImageUploadForm: FC = () => {
                 className="flex flex-col justify-center items-center gap-2"
                 onSubmit={handleSubmit}
             >
-                <div>
-                    <label htmlFor="imageIUploadInput">Upload file</label>
+                <div className="flex flex-col text-center gap-1">
+                    <label
+                        htmlFor="imageUploadInput"
+                        className="cursor-pointer bg-violet-600 text-white px-4 py-2 rounded-lg shadow hover:bg-violet-700"
+                    >
+                        📷 Upload or Take Photo
+                    </label>
                     <input
+                        hidden
                         id="imageUploadInput"
                         type="file"
                         accept="image/*"
-                        onChange={handleFileChange}
-                        className="cursor-pointer w-full text-sm text-gray-600 border-2 rounded-md p-2"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="imageCameraInput">Take a picture</label>
-                    <input
-                        id="imageCameraInput"
-                        type="file"
-                        accept="image/*"
                         capture="environment"
-                        className="cursor-pointer w-full text-sm text-gray-600 border-2 rounded-md p-2"
                         onChange={handleFileChange}
                     />
                 </div>
 
-                <button
-                    type="submit"
-                    className="cursor-pointer bg-emerald-700 p-2 rounded-md text-white hover:bg-emerald-500"
-                >
-                    FASHION ME
-                </button>
+                {preview && (
+                    <button
+                        type="submit"
+                        className="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700"
+                    >
+                        FIND MY COLOR PALETTE
+                    </button>
+                )}
             </form>
 
-            <div>{preview && <ImagePreview src={preview} />}</div>
+            <div>
+                {faceDetected && (
+                    <ImagePreview src={faceDetected} title="Face Detected" />
+                )}
+            </div>
+            <div>
+                {preview && (
+                    <ImagePreview src={preview} title="Image Uploaded" />
+                )}
+            </div>
         </>
     );
 };

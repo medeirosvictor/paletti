@@ -1,15 +1,14 @@
-import { useState } from 'react';
 import ImageUploadForm from './components/ImageUploadForm';
+import Header from './components/Header';
 
 function App() {
-    const [count, setCount] = useState(0);
-
     return (
-        <>
-            <div className="flex flex-col justify-center items-center">
+        <div className="h-full">
+            <Header />
+            <div className="flex flex-col items-center h-full">
                 <ImageUploadForm />
             </div>
-        </>
+        </div>
     );
 }
 
