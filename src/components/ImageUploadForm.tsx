@@ -1,20 +1,23 @@
-import {
-    useState,
-    useEffect,
-    type ChangeEvent,
-    type FC,
-    type FormEvent,
-} from 'react';
-import ImagePreview from './ImagePreview';
+import { useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import { useImageCompression } from '../hooks/useImageCompression';
 import { useFaceDetection } from '../hooks/useFaceDetection';
+import { getFacePixels, kMeans, rgbToHex } from '../hooks/getColorPalette';
+import { type Dispatch, type SetStateAction } from 'react';
 
-const ImageUploadForm: FC = () => {
+interface ImageUploadFormProps {
+    imageUploaded: string;
+    setImageUploaded: Dispatch<SetStateAction<string>>;
+    setFaceOutlined: Dispatch<SetStateAction<string>>;
+    setHexCluster: Dispatch<SetStateAction<string[] | null>>;
+}
+
+const ImageUploadForm = ({
+    imageUploaded,
+    setImageUploaded,
+    setFaceOutlined,
+    setHexCluster,
+}: ImageUploadFormProps) => {
     const [file, setFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string>('');
-    const [faceDetected, setFaceDetected] = useState<string>('');
-    const [pixelatedImage, setPixelatedImage] = useState<string>('');
-    const [hexCluster, setHexCluster] = useState<string>('');
     const { compressImage } = useImageCompression({
         maxSizeMB: 3,
         maxWidthOrHeight: 1024,
@@ -25,16 +28,16 @@ const ImageUploadForm: FC = () => {
 
     useEffect(() => {
         return () => {
-            if (preview) URL.revokeObjectURL(preview);
+            if (imageUploaded) URL.revokeObjectURL(imageUploaded);
         };
-    }, [preview]);
+    }, [imageUploaded]);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.currentTarget.files?.[0];
         if (!file) return;
 
         setFile(file);
-        setPreview(URL.createObjectURL(file));
+        setImageUploaded(URL.createObjectURL(file));
     };
 
     const onSubmitCompressImage = async (file: File): Promise<File> => {
@@ -60,14 +63,28 @@ const ImageUploadForm: FC = () => {
 
         const compressedImage = await onSubmitCompressImage(file);
         setFile(compressedImage);
-        setPreview(URL.createObjectURL(compressedImage));
+        setImageUploaded(URL.createObjectURL(compressedImage));
 
         const { file: croppedFaceFile, error: detectionError } =
             await detectAndCropFace(compressedImage);
 
         if (croppedFaceFile) {
             setFile(croppedFaceFile);
-            setFaceDetected(URL.createObjectURL(croppedFaceFile));
+            setFaceOutlined(URL.createObjectURL(croppedFaceFile));
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(croppedFaceFile);
+            await new Promise((res) => (img.onload = res));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(img, 0, 0);
+
+            const facePixels = getFacePixels(canvas);
+            const dominantColors = kMeans(facePixels, 3).map(rgbToHex);
+            setHexCluster(dominantColors);
         } else {
             console.error(detectionError);
         }
@@ -95,7 +112,7 @@ const ImageUploadForm: FC = () => {
                     />
                 </div>
 
-                {preview && (
+                {imageUploaded && (
                     <button
                         type="submit"
                         className="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700"
@@ -104,17 +121,6 @@ const ImageUploadForm: FC = () => {
                     </button>
                 )}
             </form>
-
-            <div>
-                {faceDetected && (
-                    <ImagePreview src={faceDetected} title="Face Detected" />
-                )}
-            </div>
-            <div>
-                {preview && (
-                    <ImagePreview src={preview} title="Image Uploaded" />
-                )}
-            </div>
         </>
     );
 };

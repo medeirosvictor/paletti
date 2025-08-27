@@ -1,8 +1,8 @@
 [
     {
         "paths": [
-            "ssd_mobilenetv1_model-shard1.dat",
-            "ssd_mobilenetv1_model-shard2.dat"
+            "ssd_mobilenetv1_model-shard1.bin",
+            "ssd_mobilenetv1_model-shard2.bin"
         ],
         "weights": [
             {
