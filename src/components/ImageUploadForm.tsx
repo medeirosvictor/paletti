@@ -57,6 +57,21 @@ const ImageUploadForm = ({
         return compressedImage;
     };
 
+    const getDominantColors = async (croppedFaceFile: File) => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(croppedFaceFile);
+        await new Promise((res) => (img.onload = res));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+
+        const facePixels = getFacePixels(canvas);
+        return kMeans(facePixels, 3).map(rgbToHex);
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!file) return;
@@ -71,19 +86,7 @@ const ImageUploadForm = ({
         if (croppedFaceFile) {
             setFile(croppedFaceFile);
             setFaceOutlined(URL.createObjectURL(croppedFaceFile));
-
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(croppedFaceFile);
-            await new Promise((res) => (img.onload = res));
-
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d')!;
-            ctx.drawImage(img, 0, 0);
-
-            const facePixels = getFacePixels(canvas);
-            const dominantColors = kMeans(facePixels, 3).map(rgbToHex);
+            const dominantColors = await getDominantColors(croppedFaceFile);
             setHexCluster(dominantColors);
         } else {
             console.error(detectionError);

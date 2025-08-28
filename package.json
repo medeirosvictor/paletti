@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.12",
+    "axios": "^1.11.0",
     "browser-image-compression": "^2.0.2",
     "face-api.js": "^0.22.2",
+    "openai": "^5.16.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^4.1.12",
+    "together-ai": "^0.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
