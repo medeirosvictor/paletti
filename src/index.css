@@ -1,40 +1,63 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-	--color-gray-20: #f5f5f7;
-	--color-gray-50: #ececf1;
-	--color-gray-100: #c8c9d4;
-	--color-gray-500: #54566c;
+    --color-gray-20: #f5f5f7;
+    --color-gray-50: #ececf1;
+    --color-gray-100: #c8c9d4;
+    --color-gray-500: #54566c;
 
-	--color-primary-100: #d2cce7;
-	--color-primary-300: #9e93cb;
-	--color-primary-500: #806db2;
+    --color-primary-100: #d2cce7;
+    --color-primary-300: #9e93cb;
+    --color-primary-500: #806db2;
 
-	--color-secondary-400: #9c90c9;
-	--color-secondary-500: #806db2;
+    --color-secondary-400: #9c90c9;
+    --color-secondary-500: #806db2;
 
-	--font-dmsans: "DM Sans", sans-serif;
-	--font-montserrat: "Montserrat", sans-serif;
+    --font-dmsans: 'DM Sans', sans-serif;
+    --font-montserrat: 'Montserrat', sans-serif;
 
-	--breakpoint-xs: 480px;
-	--breakpoint-sm: 768px;
-	--breakpoint-md: 1060px;
+    --breakpoint-xs: 480px;
+    --breakpoint-sm: 768px;
+    --breakpoint-md: 1060px;
 
-	--background-gradient-yellowred: linear-gradient(
-		90deg,
-		#ff616a 0%,
-		#ffc837 100%
-	);
+    --color-rainbow: linear-gradient(
+        90deg,
+        #ff9a9e,
+        #fad0c4,
+        #fbc2eb,
+        #a1c4fd,
+        #c2e9fb,
+        #d4fc79,
+        #96e6a1
+    );
+
+    /* --bg-rainbow: conic-gradient(
+        from 180deg at 50% 50%,
+        #ff9a9e,
+        #fad0c4,
+        #fbc2eb,
+        #a1c4fd,
+        #c2e9fb,
+        #d4fc79,
+        #96e6a1,
+        #ff9a9e
+    ); */
+
+    --background-gradient-yellowred: linear-gradient(
+        90deg,
+        #ff616a 0%,
+        #ffc837 100%
+    );
 }
 
 html,
 body,
 #root,
 .app {
-	height: 100%;
-	width: 100%;
-	font-family: "DM Sans", sans-serif;
-	@apply text-gray-500;
+    height: 100%;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    @apply text-gray-500;
 }

@@ -6,13 +6,13 @@ type Props = {
 function HexCluster({ cluster, title }: Props) {
     return (
         <div className="flex flex-col gap-1 my-5 items-center">
-            <h3 className="text-xl">{title}</h3>
-            <div className="flex gap-0.5">
+            <h3 className="text-xl font-bold">{title}</h3>
+            <div className="flex flex-wrap justify-center">
                 {cluster &&
                     cluster.map((hex, index) => (
                         <div
                             key={index}
-                            className="rounded-3xl w-[70px] h-[70px] flex items-center justify-center text-white font-bold text-xs"
+                            className="min-w-[70px] min-h-[70px] flex items-center justify-center text-white font-bold text-xs"
                             style={{ backgroundColor: hex }}
                         >
                             {hex}

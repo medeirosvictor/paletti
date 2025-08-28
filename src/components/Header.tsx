@@ -1,16 +1,18 @@
-import { type FC } from 'react';
-import Logo from '@/assets/logo.png';
+import { type FC, useState } from 'react';
+import Navbar from './Navbar';
+import { SelectedPage } from '../shared/types';
 
 const Header: FC = () => {
+    const [selectedPage, setSelectedPage] = useState<SelectedPage>(
+        SelectedPage.Home
+    );
     return (
-        <div className="flex justify-center items-center my-5">
-            {/* logo */}
-            <img src={Logo} alt="paletti-logo" />
-            <div className="flex flex-col">
-                <h1 className="text-5xl">Paletti</h1>
-                <p className="underline">Find your color palette!</p>
-            </div>
-        </div>
+        <>
+            <Navbar
+                selectedPage={selectedPage}
+                setSelectedPage={setSelectedPage}
+            />
+        </>
     );
 };
 

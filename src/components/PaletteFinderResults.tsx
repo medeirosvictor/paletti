@@ -45,10 +45,12 @@ function PaletteFinderResults({
 
             const suggestions = response.choices?.[0]?.message?.content;
 
-            setPaletteSuggestion(suggestions ?? 'No suggestion');
+            const cleaned = suggestions?.replace(/\/\/.*?\/\/\s*/s, '');
+            setPaletteSuggestion(cleaned ?? 'No suggestion');
 
-            const firstMarkerEnd = suggestions?.indexOf('//', 2); // find closing //
-            const arrayString = suggestions?.slice(2, firstMarkerEnd); // get content inside the //
+            const firstMarkerEnd = suggestions?.indexOf('//', 2);
+            const arrayString = suggestions?.slice(2, firstMarkerEnd);
+            console.log(arrayString);
             setColorSugestions(JSON.parse(arrayString || ''));
         } finally {
             setLoading(false);
@@ -59,10 +61,34 @@ function PaletteFinderResults({
         <div className="flex flex-col items-center gap-3">
             <div>
                 {hexCluster && (
-                    <HexCluster cluster={hexCluster} title="Skin Tones" />
+                    <HexCluster
+                        cluster={hexCluster}
+                        title="detected skin tones"
+                    />
                 )}
             </div>
-            <div className="flex gap-1 justify-center items-center">
+            {faceOutlined && !colorSuggestions && (
+                <button
+                    className=" w-[200px] cursor-pointer bg-indigo-600 text-white px-4 py-2 shadow hover:bg-indigo-700"
+                    onClick={handleClick}
+                    disabled={loading}
+                >
+                    {loading ? 'Processing...' : 'find my palette!'}
+                </button>
+            )}
+            {colorSuggestions && (
+                <>
+                    <HexCluster
+                        cluster={colorSuggestions}
+                        title="your colors!"
+                    />
+                    <div className="flex flex-col gap-1 indent-4 w-full max-w-[800px] mx-auto break-words text-md text-justify">
+                        <Markdown>{paletteSuggestion}</Markdown>
+                    </div>
+                </>
+            )}
+            {faceOutlined && <div>Face detected! ✅</div>}
+            <div className="flex flex-col-reverse md:flex-row gap-1 justify-center items-center">
                 <div>
                     {imageUploaded && (
                         <ImagePreview
@@ -76,18 +102,6 @@ function PaletteFinderResults({
                         <ImagePreview src={faceOutlined} title="Face Outline" />
                     )}
                 </div>
-            </div>
-            {faceOutlined && (
-                <button
-                    className=" w-[200px] cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700"
-                    onClick={handleClick}
-                >
-                    Get my color pallet
-                </button>
-            )}
-            <div className="text-left mx-auto">
-                <HexCluster cluster={colorSuggestions} title="Your results!" />
-                <Markdown>{paletteSuggestion}</Markdown>
             </div>
         </div>
     );

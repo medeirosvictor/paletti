@@ -5,11 +5,11 @@ interface ImagePreviewProps {
 
 function ImagePreview({ src, title }: ImagePreviewProps) {
     return (
-        <div className="flex flex-col justify-center items-center mt-5">
-            <p className="text-xl underline uppercase">{title}:</p>
-            <div className="rounded-xl border-1">
+        <div className="flex flex-col justify-center items-center bg-white">
+            <p className="text-xl uppercase font-bold">{title}:</p>
+            <div className="border-1 shadow-md">
                 <img
-                    className="w-72 h-72 object-contain rounded-xl"
+                    className="w-72 h-72 object-contain "
                     src={src}
                     alt="preview"
                 />
