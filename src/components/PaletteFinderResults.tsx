@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import HexCluster from './HexCluster';
 import ImagePreview from './ImagePreview';
 import Together from 'together-ai';
@@ -28,6 +28,11 @@ function PaletteFinderResults({
             }),
         []
     );
+
+    useEffect(() => {
+        setPaletteSuggestion(undefined);
+        setColorSugestions(null);
+    }, [imageUploaded]);
 
     const handleClick = async () => {
         if (loading) return;
