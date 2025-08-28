@@ -9,11 +9,11 @@ type NavbarProps = {
 
 function Navbar({ selectedPage, setSelectedPage }: NavbarProps) {
     return (
-        <nav className="flex justify-around gap-2 p-2 justify-center items-center bg-gradient-to-r from-lime-200 via-red-500 to-violet-700 text-white shadow-md">
+        <nav className="flex gap-2 p-2 justify-center items-center bg-gradient-to-r from-lime-200 via-red-500 to-violet-700 text-white shadow-md">
             {/* logo on the left */}
             <div className="flex flex-1 gap-1 justify-center items-center">
                 <img src={Logo} alt="paletti-logo" />
-                <div className="flex flex-col hidden md:block">
+                <div className="flex-col hidden md:flex">
                     <h1 className="text-3xl">Paletti</h1>
                 </div>
             </div>

@@ -4,7 +4,9 @@ import { SelectedPage } from '../shared/types';
 
 const Header: FC = () => {
     const [selectedPage, setSelectedPage] = useState<SelectedPage>(
-        SelectedPage.Home
+        location.pathname === '/howitworks'
+            ? SelectedPage.HowItWorks
+            : SelectedPage.Home
     );
     return (
         <>
