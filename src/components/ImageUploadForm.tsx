@@ -23,8 +23,7 @@ const ImageUploadForm = ({
         maxWidthOrHeight: 1024,
     });
 
-    const { croppedImage, error, loadModels, detectAndCropFace } =
-        useFaceDetection();
+    const { detectAndCropFace } = useFaceDetection();
 
     useEffect(() => {
         return () => {

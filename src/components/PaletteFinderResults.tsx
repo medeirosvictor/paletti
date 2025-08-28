@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import HexCluster from './HexCluster';
 import ImagePreview from './ImagePreview';
 import Together from 'together-ai';
@@ -41,7 +41,9 @@ function PaletteFinderResults({
                 ],
                 model: 'openai/gpt-oss-120b',
             });
-            setPaletteSuggestion(response.choices[0].message.content);
+            setPaletteSuggestion(
+                response.choices?.[0]?.message?.content ?? 'No suggestion'
+            );
         } finally {
             setLoading(false);
         }
