@@ -11,7 +11,7 @@ function App() {
     return (
         <div className="h-full">
             <Header />
-            <div className="flex flex-col items-center h-full">
+            <div className="flex flex-col items-center h-full w-5/6 mx-auto">
                 <ImageUploadForm
                     imageUploaded={imageUploaded}
                     setImageUploaded={setImageUploaded}

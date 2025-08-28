@@ -50,7 +50,7 @@ function PaletteFinderResults({
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col items-center gap-3">
             <div>{hexCluster && <HexCluster cluster={hexCluster} />}</div>
             <div className="flex gap-1 justify-center items-center">
                 <div>
@@ -68,12 +68,12 @@ function PaletteFinderResults({
                 </div>
             </div>
             <button
-                className="cursor-pointer border-1 p-3 my-3"
+                className=" w-[200px] cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700"
                 onClick={handleClick}
             >
                 Get my color pallet
             </button>
-            <div>{paletteSuggestion}</div>
+            <div className="text-left mx-auto">{paletteSuggestion}</div>
         </div>
     );
 }
