@@ -1,11 +1,12 @@
 type Props = {
-    cluster: Array<string>;
+    cluster: Array<string> | null;
+    title: string;
 };
 
-function HexCluster({ cluster }: Props) {
+function HexCluster({ cluster, title }: Props) {
     return (
         <div className="flex flex-col gap-1 my-5 items-center">
-            <h3 className="text-xl">Skin Tone Color palette</h3>
+            <h3 className="text-xl">{title}</h3>
             <div className="flex gap-0.5">
                 {cluster &&
                     cluster.map((hex, index) => (
