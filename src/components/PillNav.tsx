@@ -21,6 +21,7 @@ export interface PillNavProps {
   pillTextColor?: string;
   onMobileMenuClick?: () => void;
   initialLoadAnimation?: boolean;
+  hideLogo?: boolean;
 }
 
 const PillNav: React.FC<PillNavProps> = ({
@@ -35,7 +36,8 @@ const PillNav: React.FC<PillNavProps> = ({
   hoveredPillTextColor = '#060010',
   pillTextColor,
   onMobileMenuClick,
-  initialLoadAnimation = true
+  initialLoadAnimation = true,
+  hideLogo = false
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -253,21 +255,23 @@ const PillNav: React.FC<PillNavProps> = ({
         aria-label="Primary"
         style={cssVars}
       >
-        <Link
-          to="/"
-          aria-label="Home"
-          onMouseEnter={handleLogoEnter}
-          role="menuitem"
-          ref={logoRef}
-          className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden"
-          style={{
-            width: 'var(--nav-h)',
-            height: 'var(--nav-h)',
-            background: 'var(--base, #000)'
-          }}
-        >
-          <img src={logo} alt={logoAlt} ref={logoImgRef} className="w-full h-full object-cover block" />
-        </Link>
+        {!hideLogo && (
+          <Link
+            to="/"
+            aria-label="Home"
+            onMouseEnter={handleLogoEnter}
+            role="menuitem"
+            ref={logoRef}
+            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden"
+            style={{
+              width: 'var(--nav-h)',
+              height: 'var(--nav-h)',
+              background: 'var(--base, #000)'
+            }}
+          >
+            <img src={logo} alt={logoAlt} ref={logoImgRef} className="w-full h-full object-cover block" />
+          </Link>
+        )}
 
         <div
           ref={navItemsRef}
