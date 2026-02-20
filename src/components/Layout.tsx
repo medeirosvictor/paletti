@@ -2,6 +2,7 @@ import { Outlet } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
 import Prism from './Prism';
+import InstallPWA from './InstallPWA';
 
 export default function Layout() {
     return (
@@ -28,6 +29,7 @@ export default function Layout() {
                 <Outlet />
             </main>
             <Footer />
+            <InstallPWA />
         </div>
     );
 }

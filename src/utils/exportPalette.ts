@@ -1,4 +1,31 @@
 import type { ColorSuggestions } from '../hooks/useColorSuggestions';
+import { isLightColor } from './colorHelpers';
+
+/**
+ * Polyfill-safe roundRect: falls back to plain rect on older browsers
+ * that don't support CanvasRenderingContext2D.roundRect().
+ */
+function safeRoundRect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number
+): void {
+    if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(x, y, w, h, r);
+    } else {
+        // Fallback: manually draw rounded rectangle path
+        const radius = Math.min(r, w / 2, h / 2);
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + w, y, x + w, y + h, radius);
+        ctx.arcTo(x + w, y + h, x, y + h, radius);
+        ctx.arcTo(x, y + h, x, y, radius);
+        ctx.arcTo(x, y, x + w, y, radius);
+        ctx.closePath();
+    }
+}
 
 const SEASON_LABELS: Record<string, string> = {
     spring: '🌸 Spring',
@@ -6,14 +33,6 @@ const SEASON_LABELS: Record<string, string> = {
     fall: '🍂 Fall',
     winter: '❄️ Winter',
 };
-
-function isLightColor(hex: string): boolean {
-    const c = hex.replace('#', '');
-    const r = parseInt(c.substring(0, 2), 16);
-    const g = parseInt(c.substring(2, 4), 16);
-    const b = parseInt(c.substring(4, 6), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000 > 150;
-}
 
 /**
  * Generate a PNG image of the palette and trigger a download.
@@ -59,7 +78,7 @@ export function exportPaletteAsPng(
 
     // Background
     ctx.fillStyle = '#fafafa';
-    ctx.roundRect(0, 0, canvasWidth, canvasHeight, 16);
+    safeRoundRect(ctx, 0, 0, canvasWidth, canvasHeight, 16);
     ctx.fill();
 
     let currentY = padding;
@@ -83,7 +102,7 @@ export function exportPaletteAsPng(
         const s = swatchSize * 0.7;
         ctx.fillStyle = hex;
         ctx.beginPath();
-        ctx.roundRect(x, currentY, s, s, 10);
+        safeRoundRect(ctx, x, currentY, s, s, 10);
         ctx.fill();
         ctx.fillStyle = isLightColor(hex) ? '#000' : '#fff';
         ctx.font = 'bold 10px "DM Sans", monospace';
@@ -109,7 +128,7 @@ export function exportPaletteAsPng(
                 const ry = currentY + row * (swatchSize + gap);
                 ctx.fillStyle = hex;
                 ctx.beginPath();
-                ctx.roundRect(x, ry, swatchSize, swatchSize, 12);
+                safeRoundRect(ctx, x, ry, swatchSize, swatchSize, 12);
                 ctx.fill();
                 ctx.fillStyle = isLightColor(hex) ? '#000' : '#fff';
                 ctx.font = 'bold 11px "DM Sans", monospace';

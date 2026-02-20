@@ -7,6 +7,7 @@ import Markdown from 'react-markdown';
 import { usePalette } from '../context/PaletteContext';
 import { savePalette } from '../utils/paletteHistory';
 import { exportPaletteAsPng } from '../utils/exportPalette';
+import { isLightColor, getColorName } from '../utils/colorHelpers';
 
 const SEASON_LABELS: Record<string, string> = {
     spring: '🌸 Spring',
@@ -14,14 +15,6 @@ const SEASON_LABELS: Record<string, string> = {
     fall: '🍂 Fall',
     winter: '❄️ Winter',
 };
-
-function isLightColor(hex: string): boolean {
-    const c = hex.replace('#', '');
-    const r = parseInt(c.substring(0, 2), 16);
-    const g = parseInt(c.substring(2, 4), 16);
-    const b = parseInt(c.substring(4, 6), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000 > 150;
-}
 
 function PaletteFinderResults() {
     const {
@@ -133,18 +126,21 @@ function PaletteFinderResults() {
                                                 key={i}
                                                 type="button"
                                                 onClick={() => handleSwatchCopy(hex)}
-                                                className="w-[64px] h-[64px] rounded-xl flex items-center justify-center font-bold text-[10px] cursor-pointer transition-transform hover:scale-105 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+                                                className="w-[64px] h-[76px] rounded-xl flex flex-col items-center justify-center font-bold text-[10px] cursor-pointer transition-transform hover:scale-105 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
                                                 style={{
                                                     backgroundColor: hex,
                                                     color: isLightColor(hex) ? '#000' : '#fff',
                                                 }}
-                                                aria-label={`Copy color ${hex}`}
-                                                title={`Click to copy ${hex}`}
+                                                aria-label={`Copy color ${hex} (${getColorName(hex)})`}
+                                                title={`${getColorName(hex)} — click to copy ${hex}`}
                                             >
                                                 {copiedHex === hex ? (
                                                     <span className="animate-toast">copied!</span>
                                                 ) : (
-                                                    hex
+                                                    <>
+                                                        <span className="text-[8px] leading-tight opacity-80">{getColorName(hex)}</span>
+                                                        <span>{hex}</span>
+                                                    </>
                                                 )}
                                             </button>
                                         ))}
