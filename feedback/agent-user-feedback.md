@@ -104,6 +104,21 @@ Consider adding privacy-friendly analytics (Plausible, Umami) to understand usag
 
 ---
 
+## Phase 4: Planned Features
+
+These are planned for a future iteration.
+
+#### 21. PWA — Install as App on Phone
+Add a `manifest.json`, service worker, and an in-app "Install Paletti" button prompting users to add the app to their home screen. The app already works offline for saved palettes — making it a full PWA is a natural next step.
+
+#### 22. Detect Face Button Overlay on Uploaded Image
+Move the "Detect Face" button so it overlays at the bottom of the uploaded image preview instead of sitting below the form. This keeps the flow tighter and more visual — the user sees their photo with a clear call-to-action directly on it.
+
+#### 23. Multi-Language Support (i18n)
+Add internationalization so the app can be used in other languages. This includes all UI labels, the "How It Works" page content, error messages, and the LLM prompt (so color explanations come back in the user's language). Consider `react-i18next` or a lightweight alternative.
+
+---
+
 ## Suggested Priority Order
 
 1. Extract `isLightColor()` to shared util (5 min)
