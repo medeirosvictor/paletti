@@ -66,20 +66,20 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
     } = useColorSuggestions();
 
     const resetForNewImage = useCallback(() => {
+        if (faceOutlined) URL.revokeObjectURL(faceOutlined);
         setFaceOutlined('');
         setHexCluster(null);
         setFaceDetected(null);
         setProcessingStep('idle');
         setError(null);
         resetSuggestions();
-    }, [resetSuggestions]);
+    }, [faceOutlined, resetSuggestions]);
 
     const resetAll = useCallback(() => {
         if (imageUploaded) URL.revokeObjectURL(imageUploaded);
-        if (faceOutlined) URL.revokeObjectURL(faceOutlined);
         setImageUploaded('');
         resetForNewImage();
-    }, [imageUploaded, faceOutlined, resetForNewImage]);
+    }, [imageUploaded, resetForNewImage]);
 
     return (
         <PaletteContext.Provider

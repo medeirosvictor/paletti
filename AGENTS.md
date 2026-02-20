@@ -39,18 +39,20 @@ src/
 │   └── NotFound.tsx               # 404 page
 │
 ├── components/
-│   ├── Layout.tsx                 # Shared shell: Header + main + Footer + <Outlet />
-│   ├── Header.tsx                 # Header wrapper with selectedPage state
-│   ├── Navbar.tsx                 # Navigation bar with page links
+│   ├── Layout.tsx                 # Shared shell: Header + main + Footer + InstallPWA + <Outlet />
+│   ├── Header.tsx                 # Header with PillNav, derives active page from useLocation()
 │   ├── Footer.tsx                 # Footer with copyright + GitHub link
-│   ├── ImageUploadForm.tsx        # File upload, compression, face detection trigger
+│   ├── ImageUploadForm.tsx        # Thin orchestrator: file input + camera toggle + detect button overlay
+│   ├── CameraCapture.tsx          # Self-contained camera component (stream lifecycle, capture, close)
 │   ├── PaletteFinderResults.tsx   # Displays hex clusters, LLM suggestions, image previews
 │   ├── ImagePreview.tsx           # Image preview card
-│   └── HexCluster.tsx             # Renders array of hex color swatches
+│   ├── HexCluster.tsx             # Renders array of hex color swatches with color names
+│   └── InstallPWA.tsx             # PWA install prompt banner
 │
 ├── hooks/
-│   ├── useFaceDetection.ts        # face-api.js: load models, detect face, crop jaw region
-│   ├── useImageCompression.ts     # browser-image-compression wrapper
+│   ├── useProcessImage.ts         # Full pipeline: compress → detect face → extract colors (lazy-loads face-api.js)
+│   ├── useFaceDetection.ts        # face-api.js: load models, detect face, crop face region (legacy, used by useProcessImage)
+│   ├── useImageCompression.ts     # browser-image-compression wrapper (stable callback via useRef)
 │   └── useColorSuggestions.ts     # LLM color suggestion fetch + state management
 │
 ├── context/
@@ -59,8 +61,9 @@ src/
 ├── utils/
 │   ├── colorClustering.ts         # getFacePixels, kMeans++ clustering, rgbToHex
 │   ├── colorClustering.test.ts    # Unit tests (Vitest)
+│   ├── colorHelpers.ts            # isLightColor(), getColorName() — shared color utilities
 │   ├── paletteHistory.ts          # localStorage CRUD for saved palettes
-│   └── exportPalette.ts           # Canvas-based PNG export of palette
+│   └── exportPalette.ts           # Canvas-based PNG export with roundRect polyfill
 │
 ├── assets/
 │   └── logo.png                   # Paletti logo
@@ -71,6 +74,8 @@ netlify/
 
 public/
 ├── paletti.svg                    # Favicon
+├── logo-192.png                   # PWA icon 192x192
+├── logo-512.png                   # PWA icon 512x512
 └── models/                        # face-api.js model weights
     ├── ssd_mobilenetv1_model-*    # Face detection model
     └── face_landmark_68_*         # Facial landmark models
@@ -79,13 +84,16 @@ public/
 ## Application Flow
 
 1. User uploads or captures a photo
-2. Image is compressed client-side (`useImageCompression`)
-3. Face detection via `face-api.js` extracts jaw landmarks (`useFaceDetection`)
-4. Jaw region is cropped and clipped to a canvas
-5. Pixel data extracted, K-Means clustering finds 3 dominant skin tone HEX values (`getColorPalette.ts`)
-6. User clicks "find my palette!" → HEX values sent to Together AI LLM
-7. LLM returns 12 suggested colors (3 per season) + explanation + jewelry recommendation
-8. Results rendered with color swatches and markdown explanation
+2. User clicks "Detect Face" (overlaid on the image preview)
+3. `useProcessImage` runs the full pipeline:
+   a. Image is compressed client-side (`useImageCompression`)
+   b. face-api.js is lazy-loaded on first use (code-split chunk)
+   c. Face detection extracts landmarks, full face region is cropped
+   d. K-Means++ clustering finds 5 dominant skin tone HEX values
+4. User clicks "find my palette!" → HEX values sent to Together AI LLM
+5. LLM returns 12 suggested colors (3 per season) + explanation + jewelry recommendation
+6. Results rendered with color swatches (with human-readable color names) and markdown explanation
+7. User can save, export as PNG, or regenerate
 
 ## Commands
 
@@ -117,7 +125,8 @@ No client-side API keys are needed. The client calls `/api/color-suggestions` wh
 - Path alias `@/` maps to `src/`
 - Custom Tailwind theme tokens defined in `index.css` under `@theme` (colors, fonts, breakpoints)
 - Components use Tailwind utility classes directly, no CSS modules
-- Face detection models loaded lazily on first use (ref-guarded)
+- face-api.js lazy-loaded via dynamic `import()` — only fetched when user triggers face detection
+- Object URLs tracked and revoked systematically to prevent memory leaks
 - LLM calls proxied through Netlify Function (`/api/color-suggestions`) — no client-side API keys
 - LLM returns structured JSON; server-side validation with fallback parsing
 - Rounded corners throughout (buttons, cards, swatches, camera viewfinder) for soft aesthetic
@@ -129,12 +138,14 @@ No client-side API keys are needed. The client calls `/api/color-suggestions` wh
 
 | Package | Purpose |
 |---------|---------|
-| `face-api.js` | Face detection + landmark extraction (SSD MobileNet + 68-point landmarks) |
+| `face-api.js` | Face detection + landmark extraction (SSD MobileNet + 68-point landmarks) — lazy-loaded |
 | `browser-image-compression` | Client-side image compression before processing |
 | `together-ai` | Together AI SDK for LLM chat completions |
 | `react-markdown` | Render LLM markdown responses |
 | `react-router` | Client-side routing (v7) |
 | `tailwindcss` | Utility-first CSS framework (v4) |
+| `color-namer` | Human-readable color names for hex values |
+| `vite-plugin-pwa` | PWA support: manifest, service worker, install prompt |
 
 ## State Management
 
@@ -150,6 +161,7 @@ Components consume via `usePalette()` hook — no prop drilling.
 
 The LLM call is handled by a Netlify Function at `netlify/functions/color-suggestions.mts`:
 - Client POSTs `{ hexCluster: string[] }` to `/api/color-suggestions`
+- Rate limited: 5 requests/min per IP (in-memory sliding window)
 - System prompt requests structured JSON: `{ seasons: { spring, summer, fall, winter }, explanation, jewelry }`
 - Response validated with schema checker; handles markdown fences, malformed JSON gracefully
 - Redirects configured in `netlify.toml`: `/api/*` → `/.netlify/functions/:splat`
@@ -159,6 +171,14 @@ The LLM call is handled by a Netlify Function at `netlify/functions/color-sugges
 Unit tests with Vitest (`pnpm run test`):
 - `colorClustering.test.ts` — K-Means clustering, rgbToHex, edge cases (empty input, single pixel, convergence)
 
+## PWA Support
+
+Paletti is a Progressive Web App:
+- `vite-plugin-pwa` generates manifest and service worker
+- Face-api model files use `CacheFirst` runtime caching (30-day expiry)
+- `InstallPWA` component shows a dismissible install banner via `beforeinstallprompt`
+- Apple touch icon and theme-color meta tags in `index.html`
+
 ## Known Issues
 
-- Large bundle size (~1MB) — face-api.js could be code-split
+- Bundle still large (~670KB main + ~684KB face-api lazy chunk) — face-api.js is code-split but still big
