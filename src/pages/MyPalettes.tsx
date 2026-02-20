@@ -35,12 +35,14 @@ function MyPalettes() {
 
     if (palettes.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center gap-4 py-20 text-gray-400">
-                <p className="text-6xl">🎨</p>
-                <p className="text-xl font-medium">No saved palettes yet</p>
-                <p className="text-sm">
-                    Generate a palette on the home page and click "Save Palette" to see it here.
-                </p>
+            <div className="flex flex-col items-center justify-center gap-4 py-20">
+                <div className="bg-white/70 backdrop-blur-md rounded-3xl p-10 shadow-lg text-center">
+                    <p className="text-6xl mb-4">🎨</p>
+                    <p className="text-xl font-medium text-gray-600">No saved palettes yet</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                        Generate a palette on the home page and click "Save Palette" to see it here.
+                    </p>
+                </div>
             </div>
         );
     }
@@ -48,10 +50,10 @@ function MyPalettes() {
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-600">My Palettes</h1>
+                <h1 className="text-2xl font-bold text-white drop-shadow-md">My Palettes</h1>
                 <button
                     onClick={handleClearAll}
-                    className="cursor-pointer text-sm text-red-400 hover:text-red-600 transition-colors"
+                    className="cursor-pointer text-sm text-red-200 hover:text-red-100 transition-colors backdrop-blur-sm bg-red-500/20 px-3 py-1 rounded-full"
                 >
                     Clear all
                 </button>
@@ -61,7 +63,7 @@ function MyPalettes() {
                 {palettes.map((palette) => (
                     <div
                         key={palette.id}
-                        className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-3"
+                        className="bg-white/70 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col gap-3"
                     >
                         {/* Date */}
                         <p className="text-xs text-gray-400">
@@ -81,7 +83,7 @@ function MyPalettes() {
                                 {palette.skinTones.map((hex, i) => (
                                     <div
                                         key={i}
-                                        className="w-8 h-8 rounded-lg"
+                                        className="w-8 h-8 rounded-lg shadow-sm"
                                         style={{ backgroundColor: hex }}
                                         title={hex}
                                     />
@@ -99,7 +101,7 @@ function MyPalettes() {
                                             {colors.map((hex, i) => (
                                                 <div
                                                     key={i}
-                                                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                    className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm"
                                                     style={{
                                                         backgroundColor: hex,
                                                         color: isLightColor(hex) ? '#000' : '#fff',
@@ -126,13 +128,13 @@ function MyPalettes() {
                         <div className="flex gap-2 mt-1">
                             <button
                                 onClick={() => handleExport(palette)}
-                                className="cursor-pointer text-xs text-indigo-500 hover:text-indigo-700 transition-colors"
+                                className="cursor-pointer text-xs text-indigo-600 hover:text-indigo-800 transition-colors font-medium"
                             >
                                 📥 Export
                             </button>
                             <button
                                 onClick={() => handleDelete(palette.id)}
-                                className="cursor-pointer text-xs text-red-400 hover:text-red-600 transition-colors"
+                                className="cursor-pointer text-xs text-red-400 hover:text-red-600 transition-colors font-medium"
                             >
                                 🗑 Delete
                             </button>

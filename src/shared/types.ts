@@ -1,5 +1,2 @@
-export enum SelectedPage {
-    Home = 'home',
-    MyPalettes = 'mypalettes',
-    HowItWorks = 'howitworks',
-}
+// Shared types — currently empty after PillNav migration
+// Add app-wide types here as needed

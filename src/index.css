@@ -30,7 +30,7 @@ body,
     height: 100%;
     width: 100%;
     font-family: 'DM Sans', sans-serif;
-    @apply text-gray-500 bg-gray-20;
+    @apply text-gray-500;
 }
 
 /* Toast animation for copy feedback */

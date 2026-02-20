@@ -1,173 +1,118 @@
-# Paletti — Agent Review & Improvement Plan
+# Paletti — Agent Feedback & Future Improvements
 
-## Critical Review
-
-### What's Good
-- **Fun, original concept** — finding your color palette from skin tone is creative and genuinely useful.
-- **Solid tech choices** — React 19, Vite 7, Tailwind 4, TypeScript. Modern stack, no bloat.
-- **Client-side processing** — image compression + face detection all happen in-browser. Good for privacy.
-- **Clean component decomposition** — `ImageUploadForm`, `PaletteFinderResults`, `HexCluster`, `ImagePreview` are well-scoped.
-- **K-Means implementation** — writing your own clustering algorithm instead of pulling a library shows good fundamentals.
-
-### What Needs Work
-
-**🔴 Security: API Key Exposed Client-Side**
-The Together AI API key is in `.env` as `VITE_TOGETHERAI_API_KEY` and gets bundled into the client JS. Anyone can open DevTools, find the key, and rack up charges on your account. This is the most urgent issue.
-
-**🟡 Architecture: No Separation of Concerns**
-`PaletteFinderResults.tsx` is doing too much — it manages LLM state, creates the Together AI client, parses responses, and renders UI all in one component. The LLM call logic, response parsing, and presentation should be separated.
-
-**🟡 Fragile LLM Response Parsing**
-The `//...//` delimiter convention for extracting the JSON array from the LLM response is brittle. If the model changes its output format slightly, the entire parsing breaks with a `JSON.parse` crash. There's no error handling around this.
-
-**🟡 Dead Code & Placeholders**
-- `ProtectedRoute` always returns `true` — it's dead weight that adds confusion.
-- Login button in `Navbar` does nothing.
-- `openai` and `axios` are in `package.json` but never used.
-- `croppedImage` and `error` state in `useFaceDetection` are set but never read by consumers.
-
-**🟡 Misplaced Utilities**
-`getColorPalette.ts` lives in `hooks/` but exports pure functions (`getFacePixels`, `kMeans`, `rgbToHex`). These are utilities, not hooks.
-
-**🟡 K-Means Initialization**
-Using the first K pixels as initial centroids (instead of random or K-Means++ selection) can produce poor clusters if the first pixels happen to be similar. With face images where the top-left pixels are often background/transparent, this could skew results.
-
-**🟠 State Management**
-`Home.tsx` passes 4 state values + 3 setters through props across `ImageUploadForm` and `PaletteFinderResults`. This prop drilling will get worse as features are added (saved palettes, user accounts, history).
-
-**🟠 No Error Boundaries**
-If the LLM call fails, face detection crashes, or the image is corrupt, the user gets no feedback — just a stuck "Processing..." button or a white screen.
-
-**🟠 No Tests**
-Zero tests for the K-Means algorithm, color extraction, face detection flow, or component rendering.
-
-**🟠 Accessibility**
-- Color swatches show white text on potentially light backgrounds (low contrast).
-- No `alt` text for face outline images.
-- No loading skeleton or progress indicators during LLM calls.
-
----
-
-## Phase 1: Security, Cleanup & Foundation
-
-**Goal:** Fix the security hole, remove dead code, and organize the codebase properly.
-
-### 1.1 — Move API Key Server-Side
-- Create a lightweight backend endpoint (Netlify Function or similar) that proxies the Together AI call.
-- Client sends hex values → serverless function calls Together AI → returns result.
-- Remove `VITE_TOGETHERAI_API_KEY` from client env. Add the key only to Netlify environment variables.
-- This also lets you add rate limiting later.
-
-### 1.2 — Remove Dead Code
-- Remove `ProtectedRoute` component and its usage in `App.tsx`.
-- Remove the non-functional login button from `Navbar` (or replace with a "coming soon" tooltip).
-- Remove `openai` and `axios` from `package.json` — they're unused dependencies.
-- Remove unused `croppedImage`/`error` state exports from `useFaceDetection`.
-
-### 1.3 — Reorganize File Structure
-- Move `getColorPalette.ts` from `hooks/` to a new `src/utils/` or `src/lib/` directory.
-- Rename it to something clearer like `colorClustering.ts`.
-- Keep `hooks/` exclusively for actual React hooks.
-
-### 1.4 — Add Error Handling
-- Wrap `JSON.parse` in `PaletteFinderResults` with try/catch + user-facing error message.
-- Add error states for the LLM call (network failure, rate limit, malformed response).
-- Consider using structured output (JSON mode) from the LLM instead of the `//` delimiter hack.
-
-### 1.5 — Rotate the Exposed API Key
-- The key in `.env` (and git history) is compromised. Rotate it on Together AI immediately.
-- Ensure `.env` is in `.gitignore` (verify it's not being tracked).
-
----
-
-## Phase 2: Architecture & Robustness
-
-**Goal:** Proper separation of concerns, testability, and reliability.
-
-### 2.1 — Extract LLM Logic
-- Create `src/hooks/useColorSuggestions.ts` (or `src/services/colorSuggestionService.ts`).
-- Move Together AI client creation, prompt construction, API call, and response parsing out of `PaletteFinderResults`.
-- `PaletteFinderResults` should only receive data and render it.
-
-### 2.2 — Improve K-Means
-- Use K-Means++ initialization (pick centroids that are maximally spread apart).
-- Increase default iterations from 10 to 20.
-- Add convergence check (stop early if centroids don't move).
-- Filter out near-black/near-white pixels before clustering (shadow/highlight artifacts).
-
-### 2.3 — Structured LLM Responses
-- Switch prompt to request pure JSON output with a defined schema:
-  ```json
-  {
-    "colors": { "summer": [...], "spring": [...], "fall": [...], "winter": [...] },
-    "explanation": "...",
-    "jewelry": "gold" | "silver" | "rose gold"
-  }
-  ```
-- Use Together AI's JSON mode or a response format parameter.
-- Validate response with a schema (zod or manual).
-
-### 2.4 — Context or State Management
-- Replace prop drilling with a `PaletteContext` or a simple reducer.
-- Single state object: `{ image, face, skinTones, suggestions, status }`.
-- Components subscribe to the slices they need.
-
-### 2.5 — Add Tests
-- Unit tests for `kMeans`, `rgbToHex`, `getFacePixels` (pure functions — easy to test).
-- Integration test for the full pipeline with a known test image.
-- Use Vitest (already compatible with Vite setup).
-
-### 2.6 — Loading & Error UX
-- Replace "Processing..." text with a spinner or skeleton.
-- Add progress steps indicator: "Compressing → Detecting face → Extracting colors → Generating palette".
-- Show meaningful error messages when things fail, with a retry button.
-
----
-
-## Phase 3: Features & Polish
-
-**Goal:** Take the app from MVP to something you'd be proud to show in a portfolio.
-
-### 3.1 — Palette History (Local Storage)
-- Save generated palettes to `localStorage` with timestamp and thumbnail.
-- Add a "My Palettes" page to review past results.
-- No backend needed — works offline.
-
-### 3.2 — Improved Color Display
-- Show color names alongside hex values (use a nearest-color library like `nearest-color` or `color-namer`).
-- Add a "copy hex" button on each swatch.
-- Group suggestions visually by season with labels.
-- Add contrast-aware text color on swatches (dark text on light colors, light text on dark).
-
-### 3.3 — Share & Export
-- "Share my palette" button → generates a shareable image or link.
-- Export palette as simple PNG collage.
-- Open Graph meta tags so shared links show a preview.
-
-### 3.4 — Accessibility Pass
-- Ensure all interactive elements have proper focus states.
-- Add `aria-label` to color swatches.
-- Test with screen reader.
-- Ensure color contrast meets WCAG AA for all text.
-
-### 3.5 — Mobile Experience
-- Test and optimize the camera capture flow on iOS/Android.
-- Ensure hex swatches wrap nicely on small screens.
-- Add touch-friendly tap-to-copy on color swatches.
-
-### 3.6 — Performance
-- Lazy-load `face-api.js` models only when user starts upload flow (code-split).
-- Consider using a Web Worker for K-Means computation on large images.
-- Add proper image dimension limits before processing.
-
----
-
-## Summary
+## Completed Refactoring
 
 | Phase | Focus | Status |
 |-------|-------|--------|
-| **Phase 1** | Security fix, cleanup, file reorg, error handling | ✅ Done |
-| **Phase 2** | Architecture, testing, better LLM integration, UX | ✅ Done |
-| **Phase 3** | Features, polish, accessibility, sharing | ✅ Done |
+| **Phase 1** | Security (API key server-side), dead code removal, file reorg, error handling | ✅ Done |
+| **Phase 2** | PaletteContext, K-Means++, structured JSON LLM, Vitest tests, step indicator | ✅ Done |
+| **Phase 3** | Rounded UI, palette history, export PNG, copy-to-clipboard, accessibility, OG tags | ✅ Done |
 
-The app has a great concept and a working MVP. The most critical action is **moving the API key server-side** — everything else is improvement. After Phase 1, you'll have a clean, secure foundation. After Phase 2, the code will be maintainable and testable. Phase 3 turns it into a portfolio-worthy project.
+---
+
+## Current State — What's Good
+
+- **Clean architecture** — context-driven state, hooks for logic, utils for pure functions, serverless for secrets
+- **No client-side secrets** — API key lives only in Netlify env vars
+- **Full face detection** — forehead arc from eyebrow landmarks, not just jaw
+- **5-cluster K-Means++** with convergence + shadow/highlight filtering
+- **Structured LLM responses** — JSON schema with multi-layer fallback parsing
+- **10 passing unit tests** for clustering logic
+- **Polished UI** — rounded everything, tap-to-copy, step indicator, season cards
+- **Offline-capable history** — localStorage with export
+
+---
+
+## Remaining Issues & Improvement Ideas
+
+### 🔴 High Priority
+
+#### 1. `isLightColor()` is duplicated in 3 files
+The same function exists in `PaletteFinderResults.tsx`, `MyPalettes.tsx`, and `exportPalette.ts`. Extract it to `src/utils/colorHelpers.ts` and import everywhere.
+
+#### 2. `compressImage` dependency array passes object reference
+In `useImageCompression.ts`, the `compressImage` callback has `defaultOptions` in its dependency array, but since `defaultOptions` is an object literal passed from the caller, it creates a new reference every render. This means `compressImage` is re-created on every render, which cascades re-creations of `handleSubmit` in `ImageUploadForm`. Fix: memoize the options in the caller, or use `useRef` for stable options.
+
+#### 3. No rate limiting on the serverless function
+Anyone can spam `/api/color-suggestions` and burn through your Together AI credits. Add basic rate limiting — even a simple per-IP cooldown via Netlify Blobs or an in-memory map would help.
+
+#### 4. PNG export relies on `ctx.roundRect()` 
+`CanvasRenderingContext2D.roundRect()` is relatively new (Chrome 99+, Safari 16+). Older browsers or some WebViews will crash. Add a polyfill or fallback to `ctx.rect()`.
+
+### 🟡 Medium Priority
+
+#### 5. Navbar `selectedPage` state doesn't sync with URL
+If the user navigates via browser back/forward, the navbar highlight stays stale because `selectedPage` is local `useState` initialized once from `location.pathname`. Use `useLocation()` from react-router instead:
+```tsx
+const { pathname } = useLocation();
+// derive selectedPage from pathname reactively
+```
+This also eliminates the `Header` wrapper component entirely — fold it into `Navbar`.
+
+#### 6. `ImageUploadForm` is still 296 lines
+Even after extracting context, this component handles file input, camera stream, capture, canvas conversion, compression, face detection, and color extraction. Consider splitting:
+- `CameraCapture` component (video, start/stop/capture)
+- `useProcessImage` hook (compress → detect → extract pipeline)
+- `ImageUploadForm` becomes a thin orchestrator
+
+#### 7. Object URL memory leaks
+`URL.createObjectURL()` is called in several places but revocation is inconsistent. The cleanup effect in `ImageUploadForm` runs on unmount, but intermediate URLs (e.g., from `fileToCanvas`) are properly revoked while `faceOutlined` URLs from the context's `resetAll` only revoke on full reset. If the user generates multiple palettes without resetting, previous face URLs leak. Consider tracking all created URLs in a ref and revoking them systematically.
+
+#### 8. face-api.js model loading has no error handling
+If model files fail to load (network error, 404, corrupt file), the `loadModels` function will throw but the error isn't surfaced to the user — it just shows "Face not detected." Add a try/catch around model loading with a specific error message like "Failed to load face detection models. Check your connection."
+
+#### 9. No retry mechanism for LLM calls
+If the LLM returns a malformed response (`parseError: true`), the user sees the raw text but has no way to retry with the same skin tones. The "find my palette!" button disappears once `suggestions` is set. Add a "🔄 Try again" button that clears suggestions and re-fetches.
+
+#### 10. Export PNG doesn't include explanation text
+The exported image has swatches and jewelry but no explanation. For sharing purposes, even a truncated version of the explanation would make the PNG more useful.
+
+### 🟠 Low Priority / Nice-to-Have
+
+#### 11. Bundle size (1.05 MB)
+`face-api.js` dominates the bundle. Options:
+- **Lazy import** via `React.lazy()` + dynamic `import()` — only load face-api when the user actually uploads a photo
+- **Manual chunks** in Vite config to split face-api into its own chunk
+- Investigate lighter alternatives like `@mediapipe/face_mesh` (smaller, WebAssembly-based)
+
+#### 12. Web Share API
+On mobile, use `navigator.share()` to share the exported PNG directly to messaging apps, social media, etc. Falls back to download on desktop.
+
+#### 13. Color naming
+Show human-readable color names alongside hex values (e.g., "#c4956a → Warm Sand"). Libraries like `color-namer` or `nearest-color` can do this. Particularly helpful for accessibility.
+
+#### 14. Dark mode
+The app currently has a light-only theme. A dark mode would be straightforward with Tailwind's `dark:` variant — the rounded card aesthetic works well in both modes.
+
+#### 15. Comparison view
+Let users compare two saved palettes side-by-side — useful for seeing how results vary between photos or sessions.
+
+#### 16. Serverless function tests
+The Netlify function has validation logic and multi-layer JSON parsing that should be unit tested. Extract the parsing logic into a pure function and test it separately.
+
+#### 17. E2E tests
+The full flow (upload → detect → suggest → save → export) would benefit from a Playwright or Cypress test, even just a smoke test that verifies the pipeline doesn't crash.
+
+#### 18. PWA support
+Add a `manifest.json` and service worker for installability. The app already works offline for saved palettes — making it a PWA would be a natural fit.
+
+#### 19. Accessibility: keyboard navigation for swatch grid
+Color swatches are buttons and focusable, but there's no arrow-key navigation within the grid. Adding `role="grid"` with arrow key support would improve keyboard UX.
+
+#### 20. Analytics
+Consider adding privacy-friendly analytics (Plausible, Umami) to understand usage patterns — how many users complete the full flow, where they drop off, which seasons are most popular, etc.
+
+---
+
+## Suggested Priority Order
+
+1. Extract `isLightColor()` to shared util (5 min)
+2. Fix navbar URL sync with `useLocation()` (15 min)
+3. Add `roundRect` polyfill for export (10 min)
+4. Fix `compressImage` dependency stability (10 min)
+5. Add rate limiting to serverless function (30 min)
+6. Split `ImageUploadForm` into smaller pieces (1 hr)
+7. Add model loading error handling (15 min)
+8. Add LLM retry button (15 min)
+9. Lazy-load face-api.js for bundle size (30 min)
+10. Everything else as time/interest allows

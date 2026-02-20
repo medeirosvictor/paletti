@@ -74,24 +74,30 @@ function PaletteFinderResults() {
         <div className="flex flex-col items-center gap-5">
             {/* Detected skin tones */}
             {hexCluster && (
-                <HexCluster cluster={hexCluster} title="detected skin tones" />
+                <div className="bg-white/70 backdrop-blur-md rounded-3xl p-5 shadow-lg w-full">
+                    <HexCluster cluster={hexCluster} title="detected skin tones" />
+                </div>
             )}
 
             {/* Error display */}
             {suggestionsError && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center max-w-md border border-red-200">
+                <div className="bg-red-50/90 backdrop-blur-md text-red-600 p-4 rounded-xl text-center max-w-md border border-red-200">
                     <p className="font-semibold">Something went wrong</p>
                     <p className="text-sm mt-1">{suggestionsError}</p>
                 </div>
             )}
 
             {/* Generating indicator */}
-            {suggestionsLoading && <ProcessingIndicator step="generating" />}
+            {suggestionsLoading && (
+                <div className="bg-white/70 backdrop-blur-md rounded-2xl px-6 py-3 shadow-sm">
+                    <ProcessingIndicator step="generating" />
+                </div>
+            )}
 
             {/* Find palette button */}
             {faceOutlined && !suggestions && !suggestionsLoading && (
                 <button
-                    className="cursor-pointer bg-indigo-600 text-white px-6 py-2.5 rounded-full shadow-md hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="cursor-pointer bg-indigo-600 text-white px-6 py-2.5 rounded-full shadow-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleClick}
                     disabled={suggestionsLoading}
                 >
@@ -101,17 +107,17 @@ function PaletteFinderResults() {
 
             {/* Season-grouped color suggestions */}
             {hasSeasonColors && suggestions && (
-                <div className="flex flex-col items-center gap-6 w-full max-w-[700px]">
-                    <h2 className="text-2xl font-bold text-gray-600">Your Colors!</h2>
+                <div className="flex flex-col items-center gap-5 w-full max-w-[700px]">
+                    <h2 className="text-2xl font-bold text-white drop-shadow-md">Your Colors!</h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                         {Object.entries(suggestions.seasons).map(([season, colors]) =>
                             colors.length > 0 && (
                                 <div
                                     key={season}
-                                    className="flex flex-col items-center gap-2 bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+                                    className="flex flex-col items-center gap-2 bg-white/70 backdrop-blur-md rounded-2xl p-4 shadow-sm"
                                 >
-                                    <h3 className="text-base font-semibold text-gray-500">
+                                    <h3 className="text-base font-semibold text-gray-600">
                                         {SEASON_LABELS[season] ?? season}
                                     </h3>
                                     <div className="flex gap-2">
@@ -143,7 +149,7 @@ function PaletteFinderResults() {
 
                     {/* Jewelry recommendation */}
                     {suggestions.jewelry && (
-                        <div className="bg-white rounded-2xl px-6 py-3 shadow-sm border border-gray-100">
+                        <div className="bg-white/70 backdrop-blur-md rounded-2xl px-6 py-3 shadow-sm">
                             <p className="text-base text-gray-600">
                                 💍 Recommended jewelry:{' '}
                                 <span className="font-bold capitalize">{suggestions.jewelry}</span>
@@ -156,10 +162,10 @@ function PaletteFinderResults() {
                         <button
                             type="button"
                             onClick={handleSave}
-                            className={`cursor-pointer px-5 py-2 rounded-full shadow-sm font-medium transition-colors ${
+                            className={`cursor-pointer px-5 py-2 rounded-full shadow-sm font-medium transition-colors backdrop-blur-sm ${
                                 saved
-                                    ? 'bg-green-100 text-green-700 border border-green-300'
-                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                    ? 'bg-green-100/90 text-green-700 border border-green-300'
+                                    : 'bg-white/70 text-gray-600 border border-white/50 hover:bg-white/90'
                             }`}
                         >
                             {saved ? '✅ Saved!' : '💾 Save Palette'}
@@ -167,7 +173,7 @@ function PaletteFinderResults() {
                         <button
                             type="button"
                             onClick={handleExport}
-                            className="cursor-pointer bg-white text-gray-600 px-5 py-2 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors font-medium"
+                            className="cursor-pointer bg-white/70 text-gray-600 px-5 py-2 rounded-full shadow-sm border border-white/50 hover:bg-white/90 transition-colors font-medium backdrop-blur-sm"
                         >
                             📥 Export as PNG
                         </button>
@@ -175,7 +181,7 @@ function PaletteFinderResults() {
 
                     {/* Explanation */}
                     {suggestions.explanation && (
-                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 w-full">
+                        <div className="bg-white/70 backdrop-blur-md rounded-2xl p-5 shadow-sm w-full">
                             <div className="prose prose-sm max-w-none text-gray-600 text-justify leading-relaxed">
                                 <Markdown>{suggestions.explanation}</Markdown>
                             </div>
@@ -185,7 +191,7 @@ function PaletteFinderResults() {
             )}
 
             {faceOutlined && processingStep === 'done' && !suggestions && (
-                <p className="text-green-600 font-medium">Face detected! ✅</p>
+                <p className="text-white font-medium drop-shadow-md">Face detected! ✅</p>
             )}
 
             {/* Image previews */}
