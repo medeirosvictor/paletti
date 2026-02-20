@@ -145,6 +145,7 @@ export default async (req: Request, _context: Context) => {
         });
     } catch (err) {
         console.error('Color suggestions error:', err);
-        return jsonResponse({ error: 'Failed to generate color suggestions' }, 500);
+        const message = err instanceof Error ? err.message : String(err);
+        return jsonResponse({ error: 'Failed to generate color suggestions', debug: message }, 500);
     }
 };
