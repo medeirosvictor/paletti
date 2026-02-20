@@ -59,20 +59,9 @@ export default async (req: Request, _context: Context) => {
         return jsonResponse({ error: 'Method not allowed' }, 405);
     }
 
-    const apiKey = process.env.TOGETHERAI_API_KEY;
+    const apiKey = process.env.TOGETHER_API_KEY;
     if (!apiKey) {
-        // Debug: list env var keys (not values) to diagnose
-        const envKeys = Object.keys(process.env).filter(k => 
-            k.includes('TOGETHER') || k.includes('API') || k.includes('KEY')
-        );
-        return jsonResponse({ 
-            error: 'API key not configured',
-            debug: {
-                matchingKeys: envKeys,
-                totalEnvVars: Object.keys(process.env).length,
-                hasNetlifyEnv: typeof Netlify !== 'undefined',
-            }
-        }, 500);
+        return jsonResponse({ error: 'API key not configured' }, 500);
     }
 
     try {
