@@ -59,7 +59,7 @@ export default async (req: Request, _context: Context) => {
         return jsonResponse({ error: 'Method not allowed' }, 405);
     }
 
-    const apiKey = Netlify.env.get('TOGETHERAI_API_KEY');
+    const apiKey = process.env.TOGETHERAI_API_KEY;
     if (!apiKey) {
         return jsonResponse({ error: 'API key not configured' }, 500);
     }
