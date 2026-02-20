@@ -52,11 +52,18 @@ export function useFaceDetection() {
 
     const loadModels = useCallback(async () => {
         if (!modelsLoadedRef.current) {
-            await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            ]);
-            modelsLoadedRef.current = true;
+            try {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                ]);
+                modelsLoadedRef.current = true;
+            } catch (err) {
+                const message = err instanceof Error ? err.message : String(err);
+                throw new Error(
+                    `Failed to load face detection models. Check your connection and try again. (${message})`
+                );
+            }
         }
     }, []);
 

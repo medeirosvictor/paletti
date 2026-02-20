@@ -32,6 +32,7 @@ export function useColorSuggestions(): UseColorSuggestionsReturn {
     const fetchSuggestions = useCallback(async (hexCluster: string[]) => {
         setLoading(true);
         setError(null);
+        setSuggestions(null);
 
         try {
             const response = await fetch('/api/color-suggestions', {

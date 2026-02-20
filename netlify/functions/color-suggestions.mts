@@ -1,9 +1,45 @@
 import type { Context } from '@netlify/functions';
 import Together from 'together-ai';
 
+// --- Simple in-memory rate limiter ---
+// Limits per IP within a single Lambda container lifecycle.
+// Not bulletproof across cold starts, but catches rapid-fire abuse.
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 5;   // max 5 requests per minute per IP
+
+const rateLimitMap = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+    const now = Date.now();
+    const timestamps = rateLimitMap.get(ip) ?? [];
+
+    // Remove entries outside the window
+    const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+
+    if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
+        rateLimitMap.set(ip, recent);
+        return true;
+    }
+
+    recent.push(now);
+    rateLimitMap.set(ip, recent);
+
+    // Periodic cleanup: if map gets large, prune stale entries
+    if (rateLimitMap.size > 1000) {
+        for (const [key, times] of rateLimitMap) {
+            const valid = times.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+            if (valid.length === 0) rateLimitMap.delete(key);
+            else rateLimitMap.set(key, valid);
+        }
+    }
+
+    return false;
+}
+
 const SYSTEM_PROMPT = `You are a color palette assistant using color theory. Use "A Dictionary of Color Combinations" by Sanzo Wada as your primary reference.
 
-Given 5 skin tone hex values extracted from a face, suggest complementary colors organized by season (spring, summer, fall, winter) — 3 hex colors per season (12 total). Also recommend a jewelry metal type.
+Given 5 skin tone hex values extracted from a face, suggest complementary colors organized by season (spring, summer, fall, winter) — 3 hex colors per season (12 total). 
+Recommend a jewelry metal type based on the undertones of the skin as well.
 
 You MUST respond with valid JSON only. No markdown, no code fences, no extra text. Use this exact schema:
 
@@ -54,9 +90,18 @@ function jsonResponse(body: object, status = 200): Response {
     });
 }
 
-export default async (req: Request, _context: Context) => {
+export default async (req: Request, context: Context) => {
     if (req.method !== 'POST') {
         return jsonResponse({ error: 'Method not allowed' }, 405);
+    }
+
+    // Rate limiting
+    const clientIp = context.ip || req.headers.get('x-forwarded-for') || 'unknown';
+    if (isRateLimited(clientIp)) {
+        return jsonResponse(
+            { error: 'Too many requests. Please wait a moment and try again.' },
+            429
+        );
     }
 
     const apiKey = process.env.TOGETHER_API_KEY;

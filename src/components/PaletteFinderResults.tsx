@@ -80,10 +80,20 @@ function PaletteFinderResults() {
             )}
 
             {/* Error display */}
-            {suggestionsError && (
+            {suggestionsError && !suggestions && (
                 <div className="bg-red-50/90 backdrop-blur-md text-red-600 p-4 rounded-xl text-center max-w-md border border-red-200">
                     <p className="font-semibold">Something went wrong</p>
                     <p className="text-sm mt-1">{suggestionsError}</p>
+                    {hexCluster && (
+                        <button
+                            type="button"
+                            onClick={handleClick}
+                            disabled={suggestionsLoading}
+                            className="cursor-pointer mt-3 bg-indigo-600 text-white px-5 py-2 rounded-full shadow-sm hover:bg-indigo-700 transition-colors font-medium text-sm disabled:opacity-50"
+                        >
+                            🔄 Try again
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -186,6 +196,14 @@ function PaletteFinderResults() {
                             className="cursor-pointer bg-white/70 text-gray-600 px-5 py-2 rounded-full shadow-sm border border-white/50 hover:bg-white/90 transition-colors font-medium backdrop-blur-sm"
                         >
                             📥 Export as PNG
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleClick}
+                            disabled={suggestionsLoading}
+                            className="cursor-pointer bg-white/70 text-gray-600 px-5 py-2 rounded-full shadow-sm border border-white/50 hover:bg-white/90 transition-colors font-medium backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            🔄 Regenerate
                         </button>
                     </div>
 
