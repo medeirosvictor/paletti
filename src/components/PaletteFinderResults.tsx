@@ -2,6 +2,7 @@ import { useState } from 'react';
 import HexCluster from './HexCluster';
 import ImagePreview from './ImagePreview';
 import ProcessingIndicator from './ProcessingIndicator';
+import SavePaletteModal from './SavePaletteModal';
 import Markdown from 'react-markdown';
 import { usePalette } from '../context/PaletteContext';
 import { savePalette } from '../utils/paletteHistory';
@@ -35,6 +36,7 @@ function PaletteFinderResults() {
     } = usePalette();
 
     const [saved, setSaved] = useState(false);
+    const [saveModalOpen, setSaveModalOpen] = useState(false);
     const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
     const handleClick = () => {
@@ -44,11 +46,16 @@ function PaletteFinderResults() {
         }
     };
 
-    const handleSave = () => {
+    const handleSaveClick = () => {
+        setSaveModalOpen(true);
+    };
+
+    const handleSaveConfirm = (name: string) => {
         if (hexCluster && suggestions) {
-            savePalette(hexCluster, suggestions);
+            savePalette(name, hexCluster, suggestions);
             setSaved(true);
         }
+        setSaveModalOpen(false);
     };
 
     const handleExport = () => {
@@ -157,11 +164,18 @@ function PaletteFinderResults() {
                         </div>
                     )}
 
+                    {/* Save modal */}
+                    <SavePaletteModal
+                        open={saveModalOpen}
+                        onSave={handleSaveConfirm}
+                        onCancel={() => setSaveModalOpen(false)}
+                    />
+
                     {/* Action buttons */}
                     <div className="flex flex-wrap justify-center gap-3">
                         <button
                             type="button"
-                            onClick={handleSave}
+                            onClick={handleSaveClick}
                             className={`cursor-pointer px-5 py-2 rounded-full shadow-sm font-medium transition-colors backdrop-blur-sm ${
                                 saved
                                     ? 'bg-green-100/90 text-green-700 border border-green-300'

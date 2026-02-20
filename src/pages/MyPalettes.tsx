@@ -30,7 +30,7 @@ function MyPalettes() {
     };
 
     const handleExport = (palette: SavedPalette) => {
-        exportPaletteAsPng(palette.skinTones, palette.suggestions);
+        exportPaletteAsPng(palette.skinTones, palette.suggestions, palette.name);
     };
 
     if (palettes.length === 0) {
@@ -65,16 +65,21 @@ function MyPalettes() {
                         key={palette.id}
                         className="bg-white/70 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col gap-3"
                     >
-                        {/* Date */}
-                        <p className="text-xs text-gray-400">
-                            {new Date(palette.timestamp).toLocaleDateString(undefined, {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                            })}
-                        </p>
+                        {/* Name & Date */}
+                        <div>
+                            <p className="text-sm font-semibold text-gray-700">
+                                {palette.name || 'Untitled Palette'}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                {new Date(palette.timestamp).toLocaleDateString(undefined, {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}
+                            </p>
+                        </div>
 
                         {/* Skin tones */}
                         <div>

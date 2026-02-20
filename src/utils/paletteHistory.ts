@@ -2,6 +2,7 @@ import type { ColorSuggestions } from '../hooks/useColorSuggestions';
 
 export interface SavedPalette {
     id: string;
+    name: string;
     timestamp: number;
     skinTones: string[];
     suggestions: ColorSuggestions;
@@ -19,9 +20,10 @@ export function getSavedPalettes(): SavedPalette[] {
     }
 }
 
-export function savePalette(skinTones: string[], suggestions: ColorSuggestions): SavedPalette {
+export function savePalette(name: string, skinTones: string[], suggestions: ColorSuggestions): SavedPalette {
     const palette: SavedPalette = {
         id: crypto.randomUUID(),
+        name: name.trim() || 'Untitled Palette',
         timestamp: Date.now(),
         skinTones,
         suggestions,

@@ -20,7 +20,8 @@ function isLightColor(hex: string): boolean {
  */
 export function exportPaletteAsPng(
     skinTones: string[],
-    suggestions: ColorSuggestions
+    suggestions: ColorSuggestions,
+    name?: string
 ): void {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
@@ -67,7 +68,7 @@ export function exportPaletteAsPng(
     ctx.fillStyle = '#333';
     ctx.font = 'bold 24px "DM Sans", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('My Paletti Colors', canvasWidth / 2, currentY + 28);
+    ctx.fillText(name || 'My Paletti Colors', canvasWidth / 2, currentY + 28);
     currentY += 52;
 
     // Skin tones
