@@ -1,18 +1,23 @@
-type Props = {};
 import { Link } from 'react-router';
-function NotFound({}: Props) {
+
+function NotFound() {
     return (
-        <div className="w-full h-full flex justify-center items-center bg-gray-50">
-            <div className="flex flex-col gap-5 justify-center items-centershadow-xl bg-gradient-to-r from-yellow-200 via-orange-500 to-red-500 md:w-3/6 md:h-3/6 p-10 text-gray-700">
-                <div className="text-8xl">404 not found</div>
-                <div className="text-4xl">
-                    go{' '}
-                    <Link className="cursor-pointer underline" to="/">
-                        home and get your colors
-                    </Link>{' '}
-                    or find out{' '}
-                    <Link className="cursor-pointer underline" to="/howitworks">
-                        how paletti works
+        <div className="w-full min-h-[60vh] flex justify-center items-center">
+            <div className="flex flex-col gap-4 items-center text-center bg-gradient-to-br from-amber-100 via-rose-100 to-violet-100 rounded-3xl p-12 shadow-lg max-w-lg">
+                <p className="text-7xl font-bold text-gray-600">404</p>
+                <p className="text-xl text-gray-500">Page not found</p>
+                <div className="flex gap-3 mt-2">
+                    <Link
+                        to="/"
+                        className="bg-violet-600 text-white px-5 py-2 rounded-full shadow hover:bg-violet-700 transition-colors font-medium"
+                    >
+                        find your colors
+                    </Link>
+                    <Link
+                        to="/howitworks"
+                        className="bg-white text-gray-600 px-5 py-2 rounded-full shadow border border-gray-200 hover:bg-gray-50 transition-colors font-medium"
+                    >
+                        how it works
                     </Link>
                 </div>
             </div>

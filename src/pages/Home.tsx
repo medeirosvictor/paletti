@@ -1,29 +1,15 @@
-import { useState } from 'react';
+import { PaletteProvider } from '../context/PaletteContext';
 import ImageUploadForm from '../components/ImageUploadForm';
 import PaletteFinderResults from '../components/PaletteFinderResults';
 
-type Props = {};
-
-function Home({}: Props) {
-    const [imageUploaded, setImageUploaded] = useState<string>('');
-    const [faceOutlined, setFaceOutlined] = useState<string>('');
-    const [hexCluster, setHexCluster] = useState<Array<string> | null>(null);
-
+function Home() {
     return (
-        <div className="flex flex-col items-center">
-            <ImageUploadForm
-                imageUploaded={imageUploaded}
-                setImageUploaded={setImageUploaded}
-                setFaceOutlined={setFaceOutlined}
-                setHexCluster={setHexCluster}
-            />
-
-            <PaletteFinderResults
-                imageUploaded={imageUploaded}
-                faceOutlined={faceOutlined}
-                hexCluster={hexCluster}
-            />
-        </div>
+        <PaletteProvider>
+            <div className="flex flex-col items-center">
+                <ImageUploadForm />
+                <PaletteFinderResults />
+            </div>
+        </PaletteProvider>
     );
 }
 

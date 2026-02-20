@@ -1,112 +1,201 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import HexCluster from './HexCluster';
 import ImagePreview from './ImagePreview';
-import Together from 'together-ai';
-import { colorPalettePrompt } from '../prompts/colorPalettePrompt';
+import ProcessingIndicator from './ProcessingIndicator';
 import Markdown from 'react-markdown';
+import { usePalette } from '../context/PaletteContext';
+import { savePalette } from '../utils/paletteHistory';
+import { exportPaletteAsPng } from '../utils/exportPalette';
 
-type Props = {
-    imageUploaded: string;
-    faceOutlined: string;
-    hexCluster: Array<string> | null;
+const SEASON_LABELS: Record<string, string> = {
+    spring: '🌸 Spring',
+    summer: '☀️ Summer',
+    fall: '🍂 Fall',
+    winter: '❄️ Winter',
 };
 
-function PaletteFinderResults({
-    imageUploaded,
-    faceOutlined,
-    hexCluster,
-}: Props) {
-    const [paletteSuggestion, setPaletteSuggestion] = useState<string>();
-    const [loading, setLoading] = useState(false);
-    const [colorSuggestions, setColorSugestions] =
-        useState<Array<string> | null>(null);
+function isLightColor(hex: string): boolean {
+    const c = hex.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 150;
+}
 
-    const together = useMemo(
-        () =>
-            new Together({
-                apiKey: import.meta.env.VITE_TOGETHERAI_API_KEY,
-            }),
-        []
-    );
+function PaletteFinderResults() {
+    const {
+        imageUploaded,
+        faceOutlined,
+        hexCluster,
+        processingStep,
+        suggestions,
+        suggestionsLoading,
+        suggestionsError,
+        fetchSuggestions,
+    } = usePalette();
 
-    useEffect(() => {
-        setPaletteSuggestion(undefined);
-        setColorSugestions(null);
-    }, [imageUploaded]);
+    const [saved, setSaved] = useState(false);
+    const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
-    const handleClick = async () => {
-        if (loading) return;
-        setLoading(true);
-        try {
-            const response = await together.chat.completions.create({
-                messages: [
-                    {
-                        role: 'user',
-                        content: `${colorPalettePrompt} ${hexCluster}`,
-                    },
-                ],
-                model: 'openai/gpt-oss-120b',
-            });
-
-            const suggestions = response.choices?.[0]?.message?.content;
-
-            const cleaned = suggestions?.replace(/\/\/.*?\/\/\s*/s, '');
-            setPaletteSuggestion(cleaned ?? 'No suggestion');
-
-            const firstMarkerEnd = suggestions?.indexOf('//', 2);
-            const arrayString = suggestions?.slice(2, firstMarkerEnd);
-            console.log(arrayString);
-            setColorSugestions(JSON.parse(arrayString || ''));
-        } finally {
-            setLoading(false);
+    const handleClick = () => {
+        if (hexCluster && !suggestionsLoading) {
+            setSaved(false);
+            fetchSuggestions(hexCluster);
         }
     };
 
+    const handleSave = () => {
+        if (hexCluster && suggestions) {
+            savePalette(hexCluster, suggestions);
+            setSaved(true);
+        }
+    };
+
+    const handleExport = () => {
+        if (hexCluster && suggestions) {
+            exportPaletteAsPng(hexCluster, suggestions);
+        }
+    };
+
+    const handleSwatchCopy = async (hex: string) => {
+        try {
+            await navigator.clipboard.writeText(hex);
+        } catch {
+            // silent fallback
+        }
+        setCopiedHex(hex);
+        setTimeout(() => setCopiedHex(null), 1200);
+    };
+
+    const hasSeasonColors = suggestions?.seasons &&
+        Object.values(suggestions.seasons).some((arr) => arr.length > 0);
+
     return (
-        <div className="flex flex-col items-center gap-3">
-            <div>
-                {hexCluster && (
-                    <HexCluster
-                        cluster={hexCluster}
-                        title="detected skin tones"
-                    />
-                )}
-            </div>
-            {faceOutlined && !colorSuggestions && (
+        <div className="flex flex-col items-center gap-5">
+            {/* Detected skin tones */}
+            {hexCluster && (
+                <HexCluster cluster={hexCluster} title="detected skin tones" />
+            )}
+
+            {/* Error display */}
+            {suggestionsError && (
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center max-w-md border border-red-200">
+                    <p className="font-semibold">Something went wrong</p>
+                    <p className="text-sm mt-1">{suggestionsError}</p>
+                </div>
+            )}
+
+            {/* Generating indicator */}
+            {suggestionsLoading && <ProcessingIndicator step="generating" />}
+
+            {/* Find palette button */}
+            {faceOutlined && !suggestions && !suggestionsLoading && (
                 <button
-                    className=" w-[200px] cursor-pointer bg-indigo-600 text-white px-4 py-2 shadow hover:bg-indigo-700"
+                    className="cursor-pointer bg-indigo-600 text-white px-6 py-2.5 rounded-full shadow-md hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleClick}
-                    disabled={loading}
+                    disabled={suggestionsLoading}
                 >
-                    {loading ? 'Processing...' : 'find my palette!'}
+                    {suggestionsError ? '🔄 retry' : '✨ find my palette!'}
                 </button>
             )}
-            {colorSuggestions && (
-                <>
-                    <HexCluster
-                        cluster={colorSuggestions}
-                        title="your colors!"
-                    />
-                    <div className="flex flex-col gap-1 indent-4 w-full max-w-[800px] mx-auto break-words text-md text-justify">
-                        <Markdown>{paletteSuggestion}</Markdown>
+
+            {/* Season-grouped color suggestions */}
+            {hasSeasonColors && suggestions && (
+                <div className="flex flex-col items-center gap-6 w-full max-w-[700px]">
+                    <h2 className="text-2xl font-bold text-gray-600">Your Colors!</h2>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                        {Object.entries(suggestions.seasons).map(([season, colors]) =>
+                            colors.length > 0 && (
+                                <div
+                                    key={season}
+                                    className="flex flex-col items-center gap-2 bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+                                >
+                                    <h3 className="text-base font-semibold text-gray-500">
+                                        {SEASON_LABELS[season] ?? season}
+                                    </h3>
+                                    <div className="flex gap-2">
+                                        {colors.map((hex, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => handleSwatchCopy(hex)}
+                                                className="w-[64px] h-[64px] rounded-xl flex items-center justify-center font-bold text-[10px] cursor-pointer transition-transform hover:scale-105 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+                                                style={{
+                                                    backgroundColor: hex,
+                                                    color: isLightColor(hex) ? '#000' : '#fff',
+                                                }}
+                                                aria-label={`Copy color ${hex}`}
+                                                title={`Click to copy ${hex}`}
+                                            >
+                                                {copiedHex === hex ? (
+                                                    <span className="animate-toast">copied!</span>
+                                                ) : (
+                                                    hex
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        )}
                     </div>
-                </>
+
+                    {/* Jewelry recommendation */}
+                    {suggestions.jewelry && (
+                        <div className="bg-white rounded-2xl px-6 py-3 shadow-sm border border-gray-100">
+                            <p className="text-base text-gray-600">
+                                💍 Recommended jewelry:{' '}
+                                <span className="font-bold capitalize">{suggestions.jewelry}</span>
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap justify-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            className={`cursor-pointer px-5 py-2 rounded-full shadow-sm font-medium transition-colors ${
+                                saved
+                                    ? 'bg-green-100 text-green-700 border border-green-300'
+                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                            }`}
+                        >
+                            {saved ? '✅ Saved!' : '💾 Save Palette'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleExport}
+                            className="cursor-pointer bg-white text-gray-600 px-5 py-2 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors font-medium"
+                        >
+                            📥 Export as PNG
+                        </button>
+                    </div>
+
+                    {/* Explanation */}
+                    {suggestions.explanation && (
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 w-full">
+                            <div className="prose prose-sm max-w-none text-gray-600 text-justify leading-relaxed">
+                                <Markdown>{suggestions.explanation}</Markdown>
+                            </div>
+                        </div>
+                    )}
+                </div>
             )}
-            {faceOutlined && <div>Face detected! ✅</div>}
-            <div className="flex flex-col-reverse md:flex-row gap-1 justify-center items-center">
-                <div>
-                    {imageUploaded && (
-                        <ImagePreview
-                            src={imageUploaded}
-                            title="Image Uploaded"
-                        />
-                    )}
-                </div>
-                <div>
-                    {faceOutlined && (
-                        <ImagePreview src={faceOutlined} title="Face Outline" />
-                    )}
-                </div>
+
+            {faceOutlined && processingStep === 'done' && !suggestions && (
+                <p className="text-green-600 font-medium">Face detected! ✅</p>
+            )}
+
+            {/* Image previews */}
+            <div className="flex flex-col-reverse md:flex-row gap-4 justify-center items-center">
+                {imageUploaded && (
+                    <ImagePreview src={imageUploaded} title="Image Uploaded" />
+                )}
+                {faceOutlined && (
+                    <ImagePreview src={faceOutlined} title="Face Outline" />
+                )}
             </div>
         </div>
     );

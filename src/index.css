@@ -21,35 +21,6 @@
     --breakpoint-xs: 480px;
     --breakpoint-sm: 768px;
     --breakpoint-md: 1060px;
-
-    --color-rainbow: linear-gradient(
-        90deg,
-        #ff9a9e,
-        #fad0c4,
-        #fbc2eb,
-        #a1c4fd,
-        #c2e9fb,
-        #d4fc79,
-        #96e6a1
-    );
-
-    /* --bg-rainbow: conic-gradient(
-        from 180deg at 50% 50%,
-        #ff9a9e,
-        #fad0c4,
-        #fbc2eb,
-        #a1c4fd,
-        #c2e9fb,
-        #d4fc79,
-        #96e6a1,
-        #ff9a9e
-    ); */
-
-    --background-gradient-yellowred: linear-gradient(
-        90deg,
-        #ff616a 0%,
-        #ffc837 100%
-    );
 }
 
 html,
@@ -59,5 +30,14 @@ body,
     height: 100%;
     width: 100%;
     font-family: 'DM Sans', sans-serif;
-    @apply text-gray-500;
+    @apply text-gray-500 bg-gray-20;
+}
+
+/* Toast animation for copy feedback */
+@keyframes toast-in {
+    0% { opacity: 0; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.animate-toast {
+    animation: toast-in 0.2s ease-out;
 }
