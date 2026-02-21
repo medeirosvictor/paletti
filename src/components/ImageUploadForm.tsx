@@ -3,6 +3,7 @@ import { usePalette } from '../context/PaletteContext';
 import { useProcessImage } from '../hooks/useProcessImage';
 import CameraCapture from './CameraCapture';
 import ProcessingIndicator from './ProcessingIndicator';
+import PhotoTips from './PhotoTips';
 
 const ImageUploadForm = () => {
     const {
@@ -72,27 +73,30 @@ const ImageUploadForm = () => {
         <div className="flex flex-col justify-center items-center gap-4">
             {/* Upload / Camera buttons */}
             {!cameraOpen && (
-                <div className="flex flex-col sm:flex-row text-center gap-3">
-                    <label
-                        htmlFor="imageUploadInput"
-                        className="cursor-pointer bg-violet-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-violet-700 transition-colors font-medium"
-                    >
-                        📁 Upload Photo
-                    </label>
-                    <input
-                        hidden
-                        id="imageUploadInput"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setCameraOpen(true)}
-                        className="cursor-pointer bg-teal-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-teal-700 transition-colors font-medium"
-                    >
-                        📷 Use Camera
-                    </button>
+                <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col sm:flex-row text-center gap-3">
+                        <label
+                            htmlFor="imageUploadInput"
+                            className="cursor-pointer bg-violet-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-violet-700 transition-colors font-medium"
+                        >
+                            📁 Upload Photo
+                        </label>
+                        <input
+                            hidden
+                            id="imageUploadInput"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setCameraOpen(true)}
+                            className="cursor-pointer bg-teal-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-teal-700 transition-colors font-medium"
+                        >
+                            📷 Use Camera
+                        </button>
+                    </div>
+                    <PhotoTips />
                 </div>
             )}
 
