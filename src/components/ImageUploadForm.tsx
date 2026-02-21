@@ -118,7 +118,7 @@ const ImageUploadForm = () => {
                         <button
                             type="button"
                             onClick={handleDetectFace}
-                            className="absolute bottom-4 left-1/2 -translate-x-1/2 cursor-pointer bg-amber-500 text-white px-6 py-2.5 rounded-full shadow-lg hover:bg-amber-600 transition-colors font-medium backdrop-blur-sm"
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 cursor-pointer bg-amber-500 text-white px-6 py-2.5 rounded-full shadow-lg hover:bg-amber-600 transition-colors font-medium backdrop-blur-sm text-[10px]"
                         >
                             ✨ Detect Face
                         </button>
