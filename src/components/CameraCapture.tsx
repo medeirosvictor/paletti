@@ -7,6 +7,7 @@ interface CameraCaptureProps {
 
 function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
@@ -31,7 +32,10 @@ function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
                     return;
                 }
                 streamRef.current = stream;
-                if (videoRef.current) videoRef.current.srcObject = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.onplaying = () => setLoading(false);
+                }
             } catch (err) {
                 if (!cancelled) {
                     setError(err instanceof Error ? err.message : 'Camera access denied');
@@ -90,7 +94,13 @@ function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
 
     return (
         <div className="flex flex-col items-center gap-3">
-            <div className="rounded-2xl overflow-hidden shadow-lg border-2 border-teal-500">
+            <div className="relative rounded-2xl overflow-hidden shadow-lg border-2 border-teal-500">
+                {loading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 z-10">
+                        <div className="w-10 h-10 border-4 border-white/30 border-t-teal-400 rounded-full animate-spin" />
+                        <p className="text-white/80 text-sm mt-3 font-medium">Opening camera…</p>
+                    </div>
+                )}
                 <video
                     ref={videoRef}
                     autoPlay
@@ -103,7 +113,8 @@ function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
                 <button
                     type="button"
                     onClick={handleCapture}
-                    className="cursor-pointer bg-teal-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-teal-700 transition-colors font-medium"
+                    disabled={loading}
+                    className="cursor-pointer bg-teal-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-teal-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     📸 Capture
                 </button>
